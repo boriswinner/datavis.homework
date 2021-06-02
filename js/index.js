@@ -85,10 +85,12 @@ loadData().then(data => {
     }
 
     function drawAxis() {
-        x.domain([0, 45000])
+        xMax = Math.max(...data.map(o => o[xParam][2000]), 0); //replace 2000 with year
+        yMax = Math.max(...data.map(o => o[yParam][2000]), 0); //replace 2000 with year
+        x.domain([0, xMax]).range([margin*2, width-margin])
         xAxis.call(d3.axisBottom(x).ticks(10));  
 
-        y.domain([0, 45000])
+        y.domain([0, yMax])
         yAxis.call(d3.axisLeft(y).ticks(10));                  
 
         scatterPlot.append("text")
@@ -103,9 +105,38 @@ loadData().then(data => {
         .attr("x", `${margin + 90}`)
         .text("Y label");                
     }
+
+    function drawBubbleChart(radius_label, x_label=xParam, y_label=yParam, year=2000) {
+        scatterPlot
+        .selectAll("circle")
+        .data(data).enter()
+        .append("circle")
+        .attr("cx", function(d) {
+            if (d[x_label]) {
+                // console.log(x(d[x_label][year] || 0))
+                console.log(d[x_label][year] || 0)
+                return x(d[x_label][year] || 0)
+            }}
+        )
+        .attr("cy", function(d) {
+            if (d[y_label]) {
+                return y(d[y_label][year] || 0)
+            }}
+        )
+        .attr("r", function(d) {
+            // return Math.sqrt(d.val)/Math.PI 
+            return 1;
+        })
+        .attr("fill", function(d) {
+            // return d.color;
+        });        
+    }
+
     updateBar();
     updateScattePlot();
-    drawAxis();      
+
+    drawAxis();  
+    drawBubbleChart();    
 });
 
 
