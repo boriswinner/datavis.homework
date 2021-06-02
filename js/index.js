@@ -85,36 +85,38 @@ loadData().then(data => {
     }
 
     function drawAxis() {
-        xMax = Math.max(...data.map(o => o[xParam][2000]), 0); //replace 2000 with year
-        yMax = Math.max(...data.map(o => o[yParam][2000]), 0); //replace 2000 with year
-        x.domain([0, xMax]).range([margin*2, width-margin])
+        xMax = Math.max(...data.map(o => o[xParam][year]), 0);
+        yMax = Math.max(...data.map(o => o[yParam][year]), 0);
+        zMax = Math.max(...data.map(o => o[rParam][year]), 0);
+        x.domain([0, xMax]);
         xAxis.call(d3.axisBottom(x).ticks(10));  
 
-        y.domain([0, yMax])
+        y.domain([0, yMax]);
         yAxis.call(d3.axisLeft(y).ticks(10));                  
+
+        radiusScale.domain([0, zMax]);
 
         scatterPlot.append("text")
         .attr("text-anchor", "end")
         .attr("y", `${height - margin - 20}`)
         .attr("x", `${width - margin}`)
-        .text("X label");        
+        .text(xParam);        
 
         scatterPlot.append("text")
         .attr("text-anchor", "end")
         .attr("y", `${margin}`)
         .attr("x", `${margin + 90}`)
-        .text("Y label");                
+        .text(yParam);                
     }
 
-    function drawBubbleChart(radius_label, x_label=xParam, y_label=yParam, year=2000) {
+    function drawBubbleChart(radius_label=rParam, x_label=xParam, y_label=yParam, year=2000) {
+        console.log(data);
         scatterPlot
         .selectAll("circle")
         .data(data).enter()
         .append("circle")
         .attr("cx", function(d) {
             if (d[x_label]) {
-                // console.log(x(d[x_label][year] || 0))
-                console.log(d[x_label][year] || 0)
                 return x(d[x_label][year] || 0)
             }}
         )
@@ -124,11 +126,12 @@ loadData().then(data => {
             }}
         )
         .attr("r", function(d) {
-            // return Math.sqrt(d.val)/Math.PI 
-            return 1;
-        })
+            if (d[radius_label]) {
+                return radiusScale(d[radius_label][year] || 0)
+            }}            
+        )
         .attr("fill", function(d) {
-            // return d.color;
+            return colorScale(d.region);
         });        
     }
 
