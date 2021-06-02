@@ -106,7 +106,7 @@ loadData().then(data => {
         .text(yParam);    
     }
 
-    function updateScattePlot(radius_label=rParam, x_label=xParam, y_label=yParam, year=2000){
+    function updateScattePlot(radius_label=rParam, x_label=xParam, y_label=yParam){
         console.log(data);
         scatterPlot.selectAll("circle").remove();
         scatterPlot
