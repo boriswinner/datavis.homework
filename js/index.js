@@ -117,6 +117,8 @@ async function loadData() {
         'life-expectancy': await d3.csv('data/life_expectancy.csv'),
         'fertility-rate': await d3.csv('data/fertility-rate.csv')
     };
+
+    console.log(data);
     
     return data.population.map(d=>{
         const index = data.gdp.findIndex(item => item.geo == d.geo);
