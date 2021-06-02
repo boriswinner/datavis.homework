@@ -58,16 +58,19 @@ loadData().then(data => {
 
     d3.select('#radius').on('change', function(){ 
         rParam = d3.select(this).property('value');
+        updateBar();
         updateScattePlot();
     });
 
     d3.select('#x').on('change', function(){ 
         xParam = d3.select(this).property('value');
+        updateBar();
         updateScattePlot();
     });
 
     d3.select('#y').on('change', function(){ 
         yParam = d3.select(this).property('value');
+        updateBar();
         updateScattePlot();
     });
 
@@ -77,17 +80,11 @@ loadData().then(data => {
     });
 
     function updateBar(){
-        return;
-    }
-
-    function updateScattePlot(){
-        return;
-    }
-
-    function drawAxis() {
+        scatterPlot.selectAll("text").remove();
         xMax = Math.max(...data.map(o => o[xParam][year]), 0);
         yMax = Math.max(...data.map(o => o[yParam][year]), 0);
         zMax = Math.max(...data.map(o => o[rParam][year]), 0);
+        console.log(xParam);
         x.domain([0, xMax]);
         xAxis.call(d3.axisBottom(x).ticks(10));  
 
@@ -106,11 +103,12 @@ loadData().then(data => {
         .attr("text-anchor", "end")
         .attr("y", `${margin}`)
         .attr("x", `${margin + 90}`)
-        .text(yParam);                
+        .text(yParam);    
     }
 
-    function drawBubbleChart(radius_label=rParam, x_label=xParam, y_label=yParam, year=2000) {
+    function updateScattePlot(radius_label=rParam, x_label=xParam, y_label=yParam, year=2000){
         console.log(data);
+        scatterPlot.selectAll("circle").remove();
         scatterPlot
         .selectAll("circle")
         .data(data).enter()
@@ -132,14 +130,11 @@ loadData().then(data => {
         )
         .attr("fill", function(d) {
             return colorScale(d.region);
-        });        
+        });  
     }
 
     updateBar();
     updateScattePlot();
-
-    drawAxis();  
-    drawBubbleChart();    
 });
 
 
