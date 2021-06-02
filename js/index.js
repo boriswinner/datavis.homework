@@ -84,8 +84,28 @@ loadData().then(data => {
         return;
     }
 
+    function drawAxis() {
+        x.domain([0, 45000])
+        xAxis.call(d3.axisBottom(x).ticks(10));  
+
+        y.domain([0, 45000])
+        yAxis.call(d3.axisLeft(y).ticks(10));                  
+
+        scatterPlot.append("text")
+        .attr("text-anchor", "end")
+        .attr("y", `${height - margin - 20}`)
+        .attr("x", `${width - margin}`)
+        .text("X label");        
+
+        scatterPlot.append("text")
+        .attr("text-anchor", "end")
+        .attr("y", `${margin}`)
+        .attr("x", `${margin + 90}`)
+        .text("Y label");                
+    }
     updateBar();
     updateScattePlot();
+    drawAxis();      
 });
 
 
