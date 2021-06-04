@@ -56,6 +56,8 @@ loadData().then(data => {
         yearLable.html(year);
         updateBar();
         updateScattePlot();
+        updateBarForBarChart();
+        updateBarChart();
     });
 
     d3.select('#radius').on('change', function(){ 
@@ -139,12 +141,10 @@ loadData().then(data => {
 
     function updateBarForBarChart() {
         barChart.selectAll(".text-label-bar").remove();
-        yMax = Math.max(...data.map(o => o[param][year]), 0);
         
         xBar.domain(xBarDomain);
         xBarAxis.call(d3.axisBottom(xBar));  
 
-        yBar.domain([0, yMax]);
         yBarAxis.call(d3.axisLeft(yBar).ticks(10));                  
 
         barChart.append("text")
@@ -167,8 +167,6 @@ loadData().then(data => {
         let tempData = _.groupBy(data, function(d) {
             return d.region;
           });
-
-        console.log('aaaa')
         let means = []
 
         xBarDomain.forEach(function(item, i, arr) {
@@ -177,6 +175,7 @@ loadData().then(data => {
             });            
             means.push(mean);
         });
+        yBar.domain([0, Math.max(...means)]);
 
         console.log(means)
 
@@ -185,7 +184,9 @@ loadData().then(data => {
         .data(means)
         .enter()
         .append("rect")
-        .style("fill", "steelblue")
+        .attr("fill", function(d, i) {
+            return colorScale(xBarDomain[i]);
+        })
         .attr("class", "bar")
         .attr("x", function(d, i) { return xBar(xBarDomain[i]); })
         .attr("y", function(d) { return yBar(d); })
