@@ -47,6 +47,8 @@ const radiusScale = d3.scaleSqrt().range([10, 30]);
 
 const xBarDomain = ["asia", "europe", "africa", "americas"];
 
+let dataBackup = null;
+
 loadData().then(data => {
 
     colorScale.domain(d3.set(data.map(d=>d.region)).values());
@@ -201,6 +203,11 @@ loadData().then(data => {
     updateBarChart();
 
     barChart.selectAll("rect").on("mouseover", function(d, i) {
+        dataBackup = _.cloneDeep(data)
+        data = data.filter(function(val){
+            return val.region == xBarDomain[i]
+        })
+        updateScattePlot();
         barChart
         .selectAll("rect")
         .filter(function() {
@@ -210,6 +217,8 @@ loadData().then(data => {
     })
 
     barChart.selectAll("rect").on("mouseout", function(d, i) {
+        data = _.cloneDeep(dataBackup);
+        updateScattePlot();        
         barChart
         .selectAll("rect")
         .attr("opacity", "1");
