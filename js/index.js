@@ -188,6 +188,7 @@ loadData().then(data => {
             return colorScale(xBarDomain[i]);
         })
         .attr("class", "bar")
+        .attr("class", function(d, i) { return i })
         .attr("x", function(d, i) { return xBar(xBarDomain[i]); })
         .attr("y", function(d) { return yBar(d); })
         .attr("width", xBar.bandwidth())
@@ -198,6 +199,21 @@ loadData().then(data => {
     updateScattePlot();
     updateBarForBarChart();
     updateBarChart();
+
+    barChart.selectAll("rect").on("mouseover", function(d, i) {
+        barChart
+        .selectAll("rect")
+        .filter(function() {
+            return !this.classList.contains(i)
+        })
+        .attr("opacity", "0.5");
+    })
+
+    barChart.selectAll("rect").on("mouseout", function(d, i) {
+        barChart
+        .selectAll("rect")
+        .attr("opacity", "1");
+    })    
 });
 
 
