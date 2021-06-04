@@ -23,7 +23,7 @@ let yParam = 'child-mortality';
 let rParam = 'gdp';
 let year = '2000';
 let param = 'child-mortality';
-let lineParam = 'gdp';
+let lineParam = 'child-mortality';
 let highlighted = '';
 let selected;
 
@@ -32,6 +32,9 @@ const y = d3.scaleLinear().range([height-margin, margin]);
 
 const xBar = d3.scaleBand().range([margin*2, barWidth-margin]).padding(0.1);
 const yBar = d3.scaleLinear().range([height-margin, margin])
+
+const xLine = d3.scaleLinear().range([margin*2, width-margin]);
+const yLine = d3.scaleLinear().range([height-margin, margin]);
 
 const xAxis = scatterPlot.append('g').attr('transform', `translate(0, ${height-margin})`);
 const yAxis = scatterPlot.append('g').attr('transform', `translate(${margin*2}, 0)`);
@@ -48,6 +51,7 @@ const radiusScale = d3.scaleSqrt().range([10, 30]);
 const xBarDomain = ["asia", "europe", "africa", "americas"];
 
 let dataBackup = null;
+let country = ""
 
 loadData().then(data => {
 
@@ -61,6 +65,7 @@ loadData().then(data => {
         updateBarForBarChart();
         updateBarChart();
         bindBarChartHover();
+        bindBubbleChartClick();
     });
 
     d3.select('#radius').on('change', function(){ 
@@ -86,13 +91,20 @@ loadData().then(data => {
         updateBarForBarChart();
         updateBarChart();
         bindBarChartHover();
+        bindBubbleChartClick();
     });
+
+    d3.select('#p').on('change', function(){ 
+        lineParam = d3.select(this).property('value');
+        updateBarForLineChart();
+        updateLineChart();
+    });    
 
     function updateBar(){
         scatterPlot.selectAll(".text-label-bubbles").remove();
-        xMax = Math.max(...data.map(o => o[xParam][year]), 0);
-        yMax = Math.max(...data.map(o => o[yParam][year]), 0);
-        zMax = Math.max(...data.map(o => o[rParam][year]), 0);
+        let xMax = Math.max(...data.map(o => o[xParam][year]), 0);
+        let yMax = Math.max(...data.map(o => o[yParam][year]), 0);
+        let zMax = Math.max(...data.map(o => o[rParam][year]), 0);
         x.domain([0, xMax]);
         xAxis.call(d3.axisBottom(x).ticks(10));  
 
@@ -117,7 +129,6 @@ loadData().then(data => {
     }
 
     function updateScattePlot(radius_label=rParam, x_label=xParam, y_label=yParam){
-        console.log(data);
         scatterPlot.selectAll("circle").remove();
         scatterPlot
         .selectAll("circle")
@@ -140,7 +151,10 @@ loadData().then(data => {
         )
         .attr("fill", function(d) {
             return colorScale(d.region);
-        });  
+        })
+        .attr("country", function(d) {
+            return d.country;
+        });
     }
 
     function updateBarForBarChart() {
@@ -181,8 +195,6 @@ loadData().then(data => {
         });
         yBar.domain([0, Math.max(...means)]);
 
-        console.log(means)
-
         barChart
         .selectAll("rect")
         .data(means)
@@ -220,16 +232,75 @@ loadData().then(data => {
             barChart
             .selectAll("rect")
             .attr("opacity", "1");
+            bindBubbleChartClick();
         })  
+    }
+
+    function updateBarForLineChart() {
+        lineChart.selectAll(".text-label-line").remove();
+        let xMax = 2021;
+        xLine.domain([1800, xMax]);
+        xLineAxis.call(d3.axisBottom(xLine));  
+
+        yLineAxis.call(d3.axisLeft(yLine).ticks(10));                  
+
+
+        lineChart.append("text")
+        .attr("text-anchor", "end")
+        .attr("class", "text-label-line")
+        .attr("y", `${height - margin - 20}`)
+        .attr("x", `${width - margin}`)
+        .text("year");        
+
+        lineChart.append("text")
+        .attr("text-anchor", "end")
+        .attr("class", "text-label-line")
+        .attr("y", `${margin}`)
+        .attr("x", `${margin + 90}`)
+        .text(lineParam);         
+    }
+
+    function updateLineChart() {
+        lineChart.selectAll(".line-chart-pic").remove();
+        let temp_data = _.groupBy(data, function(d) {
+            return d.country;
+          });
+        temp_data = temp_data[country][0][lineParam]
+        temp_data = Object.fromEntries(Object.entries(temp_data).filter(([_, v]) => !isNaN(_) && _)); //Remove non-year keys
+        temp_y_data = Object.values(temp_data)
+        
+        yLine.domain([0, Math.max(...temp_y_data)]);
+        temp_data = Object.entries(temp_data);
+
+        lineChart.append("path")
+        .datum(temp_data)
+        .attr("fill", "none")
+        .attr("class", "line-chart-pic")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+          .x(function(d, i) { 
+              return xLine(d[0])
+             })
+          .y(function(d, i) { 
+              return yLine(d[1]) 
+            })
+        )
     }
 
     function bindBubbleChartClick() {
         scatterPlot.selectAll("circle").on("click", function(d, i) {
-            console.log(this);
-            if (d3.select(this).attr("stroke-width") == 5)
+            scatterPlot.selectAll("circle").attr("stroke-width", 1);
+            if (d3.select(this).attr("stroke-width") == 5){
                 d3.select(this).attr("stroke-width", 1);
-            else
-                d3.select(this).attr("stroke-width", 5);
+            }
+            else {
+                d3.select(this).raise().attr("stroke-width", 5);
+                d3.selectAll("#line-selector").style("visibility", "initial");
+                country = d3.select(this).attr("country")
+                updateBarForLineChart();
+                updateLineChart();
+            }
         })        
     }
 
@@ -251,8 +322,6 @@ async function loadData() {
         'life-expectancy': await d3.csv('data/life_expectancy.csv'),
         'fertility-rate': await d3.csv('data/fertility-rate.csv')
     };
-
-    console.log(data);
     
     return data.population.map(d=>{
         const index = data.gdp.findIndex(item => item.geo == d.geo);
