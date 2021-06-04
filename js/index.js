@@ -84,6 +84,7 @@ loadData().then(data => {
         param = d3.select(this).property('value');
         updateBarForBarChart();
         updateBarChart();
+        bindBarChartHover();
     });
 
     function updateBar(){
@@ -197,32 +198,36 @@ loadData().then(data => {
         .attr("height", function(d) { return height - margin - yBar(d); });
     }
 
+    function bindBarChartHover() {
+        barChart.selectAll("rect").on("mouseover", function(d, i) {
+            dataBackup = _.cloneDeep(data)
+            data = data.filter(function(val){
+                return val.region == xBarDomain[i]
+            })
+            updateScattePlot();
+            barChart
+            .selectAll("rect")
+            .filter(function() {
+                return !this.classList.contains(i)
+            })
+            .attr("opacity", "0.5");
+        })
+    
+        barChart.selectAll("rect").on("mouseout", function(d, i) {
+            data = _.cloneDeep(dataBackup);
+            updateScattePlot();        
+            barChart
+            .selectAll("rect")
+            .attr("opacity", "1");
+        })  
+    }
+
     updateBar();
     updateScattePlot();
     updateBarForBarChart();
     updateBarChart();
-
-    barChart.selectAll("rect").on("mouseover", function(d, i) {
-        dataBackup = _.cloneDeep(data)
-        data = data.filter(function(val){
-            return val.region == xBarDomain[i]
-        })
-        updateScattePlot();
-        barChart
-        .selectAll("rect")
-        .filter(function() {
-            return !this.classList.contains(i)
-        })
-        .attr("opacity", "0.5");
-    })
-
-    barChart.selectAll("rect").on("mouseout", function(d, i) {
-        data = _.cloneDeep(dataBackup);
-        updateScattePlot();        
-        barChart
-        .selectAll("rect")
-        .attr("opacity", "1");
-    })    
+    bindBarChartHover();
+  
 });
 
 
