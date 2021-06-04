@@ -45,6 +45,8 @@ const yBarAxis = barChart.append('g').attr('transform', `translate(${margin*2}, 
 const colorScale = d3.scaleOrdinal().range(['#DD4949', '#39CDA1', '#FD710C', '#A14BE5']);
 const radiusScale = d3.scaleSqrt().range([10, 30]);
 
+const xBarDomain = ["asia", "europe", "africa", "americas"];
+
 loadData().then(data => {
 
     colorScale.domain(d3.set(data.map(d=>d.region)).values());
@@ -52,8 +54,8 @@ loadData().then(data => {
     d3.select('#range').on('change', function(){ 
         year = d3.select(this).property('value');
         yearLable.html(year);
-        updateScattePlot();
         updateBar();
+        updateScattePlot();
     });
 
     d3.select('#radius').on('change', function(){ 
@@ -76,15 +78,15 @@ loadData().then(data => {
 
     d3.select('#param').on('change', function(){ 
         param = d3.select(this).property('value');
-        updateBar();
+        updateBarForBarChart();
+        updateBarChart();
     });
 
     function updateBar(){
-        scatterPlot.selectAll("text").remove();
+        scatterPlot.selectAll(".text-label-bubbles").remove();
         xMax = Math.max(...data.map(o => o[xParam][year]), 0);
         yMax = Math.max(...data.map(o => o[yParam][year]), 0);
         zMax = Math.max(...data.map(o => o[rParam][year]), 0);
-        console.log(xParam);
         x.domain([0, xMax]);
         xAxis.call(d3.axisBottom(x).ticks(10));  
 
@@ -95,12 +97,14 @@ loadData().then(data => {
 
         scatterPlot.append("text")
         .attr("text-anchor", "end")
+        .attr("class", "text-label-bubbles")
         .attr("y", `${height - margin - 20}`)
         .attr("x", `${width - margin}`)
         .text(xParam);        
 
         scatterPlot.append("text")
         .attr("text-anchor", "end")
+        .attr("class", "text-label-bubbles")
         .attr("y", `${margin}`)
         .attr("x", `${margin + 90}`)
         .text(yParam);    
@@ -133,8 +137,66 @@ loadData().then(data => {
         });  
     }
 
+    function updateBarForBarChart() {
+        barChart.selectAll(".text-label-bar").remove();
+        yMax = Math.max(...data.map(o => o[param][year]), 0);
+        
+        xBar.domain(xBarDomain);
+        xBarAxis.call(d3.axisBottom(xBar));  
+
+        yBar.domain([0, yMax]);
+        yBarAxis.call(d3.axisLeft(yBar).ticks(10));                  
+
+        barChart.append("text")
+        .attr("text-anchor", "end")
+        .attr("class", "text-label-bar")
+        .attr("y", `${height - margin - 20}`)
+        .attr("x", `${500}`)
+        .text("country");        
+
+        barChart.append("text")
+        .attr("text-anchor", "end")
+        .attr("class", "text-label-bar")
+        .attr("y", `${margin}`)
+        .attr("x", `${margin + 90}`)
+        .text(param);            
+    }
+
+    function updateBarChart(){
+        barChart.selectAll("rect").remove();
+        let tempData = _.groupBy(data, function(d) {
+            return d.region;
+          });
+
+        console.log('aaaa')
+        let means = []
+
+        xBarDomain.forEach(function(item, i, arr) {
+            let mean =  _.meanBy(tempData[item], function(p) {
+                return parseFloat((p[param][year] || 0.0), 10)
+            });            
+            means.push(mean);
+        });
+
+        console.log(means)
+
+        barChart
+        .selectAll("rect")
+        .data(means)
+        .enter()
+        .append("rect")
+        .style("fill", "steelblue")
+        .attr("class", "bar")
+        .attr("x", function(d, i) { return xBar(xBarDomain[i]); })
+        .attr("y", function(d) { return yBar(d); })
+        .attr("width", xBar.bandwidth())
+        .attr("height", function(d) { return height - margin - yBar(d); });
+    }
+
     updateBar();
     updateScattePlot();
+    updateBarForBarChart();
+    updateBarChart();
 });
 
 
