@@ -223,11 +223,22 @@ loadData().then(data => {
         })  
     }
 
+    function bindBubbleChartClick() {
+        scatterPlot.selectAll("circle").on("click", function(d, i) {
+            console.log(this);
+            if (d3.select(this).attr("stroke-width") == 5)
+                d3.select(this).attr("stroke-width", 1);
+            else
+                d3.select(this).attr("stroke-width", 5);
+        })        
+    }
+
     updateBar();
     updateScattePlot();
     updateBarForBarChart();
     updateBarChart();
     bindBarChartHover();
+    bindBubbleChartClick();
   
 });
 
