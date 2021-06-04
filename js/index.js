@@ -60,6 +60,7 @@ loadData().then(data => {
         updateScattePlot();
         updateBarForBarChart();
         updateBarChart();
+        bindBarChartHover();
     });
 
     d3.select('#radius').on('change', function(){ 
