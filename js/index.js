@@ -290,14 +290,17 @@ loadData().then(data => {
 
     function bindBubbleChartClick() {
         scatterPlot.selectAll("circle").on("click", function(d, i) {
-            scatterPlot.selectAll("circle").attr("stroke-width", 1);
             if (d3.select(this).attr("stroke-width") == 5){
                 d3.select(this).attr("stroke-width", 1);
+                d3.selectAll(".line-chart-container").style("visibility", "hidden");
             }
             else {
+                scatterPlot.selectAll("circle").attr("stroke-width", 1);
                 d3.select(this).raise().attr("stroke-width", 5);
+                d3.selectAll(".line-chart-container").style("visibility", "initial");
                 d3.selectAll("#line-selector").style("visibility", "initial");
                 country = d3.select(this).attr("country")
+                countryName.html(country)
                 updateBarForLineChart();
                 updateLineChart();
             }
